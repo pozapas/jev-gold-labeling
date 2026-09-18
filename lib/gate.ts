@@ -2,35 +2,49 @@
  *
  * The narratives are not public data, so the dataset is NOT served from public/. It lives in
  * data/ (server-side only) and is handed out by /api/tasks, which refuses without a valid
- * cookie. The cookie is set by /api/gate after checking the code against ACCESS_CODE.
+ * cookie. The cookie is set by /api/gate after checking the submitted code.
  *
- * This is a shared-secret gate, not per-user authentication: it stops the link from being
- * openable by anyone who finds it, which is what was asked for. It does not stop a coder who
- * has the code from sharing it, and it is not a substitute for the data agreement.
+ * The code itself is never stored here -- only a salted SHA-256 of it. The code is 12
+ * characters from a 32-symbol alphabet (~2^60), so recovering it from the hash is not
+ * feasible, and the repository therefore contains no secret. Setting ACCESS_CODE in the
+ * environment overrides the baked hash, which is how the code is rotated without a commit.
+ *
+ * This is a shared secret, not per-user authentication: it stops the link being usable by
+ * whoever finds it, which is what it is for. It does not stop a coder passing the code on,
+ * and it is not a substitute for the data agreement.
  */
-import { createHmac, timingSafeEqual } from "crypto";
+import { createHash, createHmac, timingSafeEqual } from "crypto";
 
 const COOKIE = "jev_gate";
+const SALT = "jev-gold-2026";
+
+/** sha256(`${SALT}:${CODE.toUpperCase()}`) — see scripts/set-code.mjs to rotate. */
+const CODE_HASH = "10b2da91708242fcc971834c0466c27cbc712fd3362201aeb75cef2d00644ecb";
+
+function hashOf(code: string): string {
+  return createHash("sha256").update(`${SALT}:${code.trim().toUpperCase()}`).digest("hex");
+}
+
+function expectedHash(): string {
+  const env = process.env.ACCESS_CODE;
+  return env && env.length > 0 ? hashOf(env) : CODE_HASH;
+}
 
 function secret(): string {
-  // SESSION_SECRET is optional; falling back to the code itself still binds the cookie to
-  // the configured code, so rotating the code invalidates every issued cookie.
-  return process.env.SESSION_SECRET || process.env.ACCESS_CODE || "dev-only-secret";
+  // Binds issued cookies to the active code: rotating the code invalidates every cookie.
+  return process.env.SESSION_SECRET || expectedHash();
 }
 
-export function expectedCode(): string | null {
-  const c = process.env.ACCESS_CODE;
-  return c && c.length > 0 ? c : null;
+export function gateConfigured(): boolean {
+  return expectedHash().length === 64;
 }
 
-/** Constant-time compare, so the endpoint does not leak the code one character at a time. */
+/** Constant-time compare of the hashes, so the endpoint leaks nothing by timing. */
 export function codeMatches(given: string): boolean {
-  const want = expectedCode();
-  if (!want) return false;
-  const a = Buffer.from(given.trim());
-  const b = Buffer.from(want);
-  if (a.length !== b.length) return false;
-  return timingSafeEqual(a, b);
+  if (!given) return false;
+  const a = Buffer.from(hashOf(given));
+  const b = Buffer.from(expectedHash());
+  return a.length === b.length && timingSafeEqual(a, b);
 }
 
 export function issueToken(): string {

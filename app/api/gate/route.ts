@@ -1,13 +1,12 @@
 import { NextResponse } from "next/server";
-import { COOKIE_NAME, codeMatches, expectedCode, issueToken } from "@/lib/gate";
+import { COOKIE_NAME, codeMatches, gateConfigured, issueToken } from "@/lib/gate";
 
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
-  if (!expectedCode()) {
-    // Fail closed: an unset ACCESS_CODE must never mean "open to everyone".
-    return NextResponse.json(
-      { error: "ACCESS_CODE is not configured on the server" }, { status: 503 });
+  if (!gateConfigured()) {
+    // Fail closed: a missing code configuration must never mean "open to everyone".
+    return NextResponse.json({ error: "gate is not configured" }, { status: 503 });
   }
   let code = "";
   try {
