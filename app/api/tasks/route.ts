@@ -9,20 +9,22 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /** The dataset lives outside public/, so this is the only route to the narratives and every
- *  request must carry a valid gate cookie. It is stored gzipped (260 KB -> 77 KB) and
- *  decompressed here; the plain .json is used by the local pipeline and is not deployed. */
+ *  request must carry a valid gate cookie. Stored gzipped (260 KB -> 77 KB). The roster is
+ *  returned alongside it so the client can work out which slice this rater owns. */
 export async function GET() {
   const jar = await cookies();
   if (!tokenValid(jar.get(COOKIE_NAME)?.value)) {
     return NextResponse.json({ error: "unauthorised" }, { status: 401 });
   }
   const dir = path.join(process.cwd(), "data");
-  let body: string;
+  let tasks: string;
   try {
-    body = gunzipSync(await readFile(path.join(dir, "gold_tasks.json.gz"))).toString("utf8");
+    tasks = gunzipSync(await readFile(path.join(dir, "gold_tasks.json.gz"))).toString("utf8");
   } catch {
-    body = await readFile(path.join(dir, "gold_tasks.json"), "utf8");
+    tasks = await readFile(path.join(dir, "gold_tasks.json"), "utf8");
   }
+  const roster = await readFile(path.join(dir, "roster.json"), "utf8");
+  const body = `{"dataset":${tasks},"roster":${roster}}`;
   return new NextResponse(body, {
     headers: { "content-type": "application/json", "cache-control": "private, no-store" },
   });

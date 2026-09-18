@@ -1,0 +1,32 @@
+{
+  "_comment": [
+    "Rater roster. Replace the placeholder names with your lab members, keep the ids stable,",
+    "and redeploy. Order matters: allocation is derived from a rater's position in this list,",
+    "so reordering or removing an entry reshuffles who codes what. To drop someone after",
+    "coding has started, leave their entry in place and mark \"active\": false.",
+    "",
+    "replication = how many independent raters see each narrative. 3 gives a majority vote",
+    "and a per-rater reliability estimate. calibration_n narratives are coded by EVERYONE,",
+    "so the whole group can be compared on the same items before their own slice begins."
+  ],
+  "replication": 3,
+  "calibration_n": 15,
+  "raters": [
+    { "id": "R01", "name": "Rater 01", "active": true },
+    { "id": "R02", "name": "Rater 02", "active": true },
+    { "id": "R03", "name": "Rater 03", "active": true },
+    { "id": "R04", "name": "Rater 04", "active": true },
+    { "id": "R05", "name": "Rater 05", "active": true },
+    { "id": "R06", "name": "Rater 06", "active": true },
+    { "id": "R07", "name": "Rater 07", "active": true },
+    { "id": "R08", "name": "Rater 08", "active": true },
+    { "id": "R09", "name": "Rater 09", "active": true },
+    { "id": "R10", "name": "Rater 10", "active": true },
+    { "id": "R11", "name": "Rater 11", "active": true },
+    { "id": "R12", "name": "Rater 12", "active": true },
+    { "id": "R13", "name": "Rater 13", "active": true },
+    { "id": "R14", "name": "Rater 14", "active": true },
+    { "id": "R15", "name": "Rater 15", "active": true },
+    { "id": "R16", "name": "Rater 16", "active": true }
+  ]
+}

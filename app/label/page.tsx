@@ -3,6 +3,8 @@
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import type { Dataset, Session, Verdict } from "@/lib/types";
+import type { Roster } from "@/lib/allocate";
+import { assignmentFor } from "@/lib/allocate";
 import { KEY, VERDICTS } from "@/lib/types";
 import { counts, download, exportPayload, load, save, setLabel } from "@/lib/store";
 
@@ -20,8 +22,9 @@ function Loading() {
 
 function Labeller() {
   const params = useSearchParams();
-  const coder = params.get("coder") ?? "";
+  const rater = params.get("rater") ?? params.get("coder") ?? "";
   const [data, setData] = useState<Dataset | null>(null);
+  const [roster, setRoster] = useState<Roster | null>(null);
   const [s, setS] = useState<Session | null>(null);
   const [saved, setSaved] = useState(true);
   const [flagged, setFlagged] = useState<Set<number>>(new Set());
@@ -30,12 +33,23 @@ function Labeller() {
   useEffect(() => {
     fetch("/api/tasks")
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
-      .then(setData)
+      .then((j) => { setData(j.dataset); setRoster(j.roster); })
       .catch(() => { window.location.href = "/gate"; });
   }, []);
-  useEffect(() => { if (coder) setS(load(coder)); }, [coder]);
+  useEffect(() => { if (rater) setS(load(rater)); }, [rater]);
 
-  const task = useMemo(() => (data && s ? data.tasks[s.cursor] : null), [data, s]);
+  /** The slice this rater owns: the shared calibration items, then their own assignment.
+   *  Everything is derived from the roster position, so no server coordination is needed
+   *  and a reload or a different machine yields the same set. */
+  const myTasks = useMemo(() => {
+    if (!data || !roster) return null;
+    const i = roster.raters.findIndex((r) => r.id === rater);
+    if (i < 0) return null;
+    const { calibration, assigned } = assignmentFor(i, data.tasks.length, roster);
+    return [...calibration, ...assigned].map((j) => ({ ...data.tasks[j], calibration: j < roster.calibration_n }));
+  }, [data, roster, rater]);
+
+  const task = useMemo(() => (myTasks && s ? myTasks[s.cursor] : null), [myTasks, s]);
   useEffect(() => { enter.current = Date.now(); }, [task?.id]);
 
   const persist = useCallback((next: Session) => {
@@ -49,10 +63,10 @@ function Labeller() {
   }, [s, task, persist]);
 
   const move = useCallback((d: number) => {
-    if (!s || !data) return;
-    const n = Math.min(Math.max(s.cursor + d, 0), data.tasks.length - 1);
+    if (!s || !myTasks) return;
+    const n = Math.min(Math.max(s.cursor + d, 0), myTasks.length - 1);
     persist({ ...s, cursor: n });
-  }, [s, data, persist]);
+  }, [s, myTasks, persist]);
 
   /** The first unanswered question on this narrative, so keyboard answers land in order. */
   const nextUnanswered = useMemo(() => {
@@ -72,13 +86,15 @@ function Labeller() {
     return () => window.removeEventListener("keydown", onKey);
   }, [move, answer, nextUnanswered]);
 
-  if (!coder) return <main className="wrap" style={{ padding: 48 }}>
-    <p>No coder ID. <a href="/">Start here</a>.</p></main>;
-  if (!data || !s || !task) return <Loading />;
+  if (!rater) return <main className="wrap" style={{ padding: 48 }}>
+    <p>No rater selected. <a href="/">Start here</a>.</p></main>;
+  if (data && roster && myTasks === null) return <main className="wrap" style={{ padding: 48 }}>
+    <p>&ldquo;{rater}&rdquo; is not on the roster. <a href="/">Pick your name</a>.</p></main>;
+  if (!data || !s || !task || !myTasks) return <Loading />;
 
-  const c = counts(s, data.tasks);
+  const c = counts(s, myTasks);
   const pct = c.total ? Math.round((100 * c.done) / c.total) : 0;
-  const isDouble = data.double_coded_ids.includes(task.id);
+  const isCal = (task as { calibration?: boolean }).calibration === true;
   const allDone = task.vars.every((v) => s.labels[KEY(task.id, v)]);
 
   return (
@@ -90,7 +106,7 @@ function Labeller() {
         <div className="wrap" style={{
           display: "flex", gap: 16, alignItems: "center", padding: "10px 20px", flexWrap: "wrap",
         }}>
-          <strong style={{ fontSize: 14 }}>Narrative {s.cursor + 1} / {data.tasks.length}</strong>
+          <strong style={{ fontSize: 14 }}>Narrative {s.cursor + 1} / {myTasks.length}</strong>
           <div style={{
             flex: "1 1 180px", minWidth: 120, height: 6, borderRadius: 3,
             background: "var(--line)", overflow: "hidden",
@@ -101,10 +117,10 @@ function Labeller() {
             {c.done} / {c.total} answers · {c.tasksDone} narratives complete
           </span>
           <span className="muted" style={{ fontSize: 12 }}>
-            {saved ? "saved" : "saving…"} · {coder}
+            {saved ? "saved" : "saving…"} · {rater}
           </span>
           <button
-            onClick={() => download(`gold-labels-${coder}.json`, exportPayload(s, data.generated))}
+            onClick={() => download(`gold-labels-${rater}.json`, exportPayload(s, data.generated))}
             style={{ fontSize: 13 }}
           >
             Download my labels
@@ -120,7 +136,7 @@ function Labeller() {
         <section className="panel" style={{ padding: 20, position: "sticky", top: 74 }}>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
             <span className="muted" style={{ fontSize: 12, letterSpacing: ".06em" }}>
-              NARRATIVE {isDouble && <span style={{ color: "var(--orange)" }}>· double-coded</span>}
+              NARRATIVE {isCal && <span style={{ color: "var(--orange)" }}>· calibration item</span>}
             </span>
             <button
               onClick={() => setFlagged((f) => new Set(f).add(task.id))}
@@ -203,7 +219,7 @@ function Labeller() {
             <button onClick={() => move(-1)} disabled={s.cursor === 0}>← Previous</button>
             <button
               onClick={() => move(1)}
-              disabled={s.cursor >= data.tasks.length - 1}
+              disabled={s.cursor >= myTasks.length - 1}
               style={{
                 fontWeight: 600,
                 background: allDone ? "var(--blue)" : undefined,
@@ -229,7 +245,7 @@ function Labeller() {
               </p>
               <button
                 onClick={() =>
-                  download(`gold-labels-${coder}.json`, exportPayload(s, data.generated))}
+                  download(`gold-labels-${rater}.json`, exportPayload(s, data.generated))}
                 style={{
                   background: "var(--green)", color: "#fff", borderColor: "var(--green)",
                   fontWeight: 600,

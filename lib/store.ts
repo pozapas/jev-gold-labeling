@@ -8,7 +8,8 @@
 import type { Label, Session, Verdict } from "./types";
 import { KEY } from "./types";
 
-const LS = (coder: string) => `jev-gold:${coder}`;
+// keyed per rater, so two people sharing a machine keep separate sessions
+const LS = (rater: string) => `jev-gold:${rater}`;
 
 export function load(coder: string): Session {
   if (typeof window === "undefined") return blank(coder);
