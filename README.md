@@ -14,13 +14,20 @@ raters (default 3), and a short calibration set is rated by everyone. Splitting 
 narratives N ways would give one rating per item and no way to measure how noisy the labels
 are -- which matters more than size here, because this set is the reference everything else
 is measured against. With three ratings you get a majority vote and a per-rater reliability
-estimate; with 16 raters it is also *less* work each (~1.8 h) than three coders doing a
-single pass (~3.6 h).
+estimate.
 
 Allocation is deterministic from a rater's position in `data/roster.json`: narrative *j*
 goes to raters *(j + k·⌊N/R⌋) mod N*. No server state, no coordination, and a reload or a
-different machine yields the same slice. At N=16, R=3 that is 72-73 assigned narratives
-each plus the 15 shared calibration items, with every item covered exactly three times.
+different machine yields the same slice.
+
+**Current configuration: 3 coders, replication 2, 20 calibration items.** Each coder gets
+~273 narratives / ~1,675 judgments (3.5-5.5 h); every item is coded by two of the three, so
+there is a disagreement signal on all 400 — the outline's original design double-coded only
+100 — and the 20-item block all three code carries the pairwise kappas. Raising replication
+to 3 would mean everyone codes all 400 (~5-8 h each) for a third rating that mostly breaks
+ties a single adjudicator can break more cheaply.
+
+See `paper1/CODER_RECRUITMENT.md` for who to recruit and why the three profiles differ.
 
 **It is blind by construction.** `data/gold_tasks.json` contains no model output —
 no probabilities, no predicted labels, nothing derived from Jev. The probabilities are what
