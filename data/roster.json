@@ -1,32 +1,24 @@
 {
   "_comment": [
-    "Rater roster. Replace the placeholder names with your lab members, keep the ids stable,",
-    "and redeploy. Order matters: allocation is derived from a rater's position in this list,",
-    "so reordering or removing an entry reshuffles who codes what. To drop someone after",
-    "coding has started, leave their entry in place and mark \"active\": false.",
+    "Rater roster. Replace name/id with your three coders, then push; every push redeploys.",
+    "Order matters: allocation derives from a rater's position in this list, so reordering or",
+    "removing an entry reshuffles who codes what. To drop someone after coding has started,",
+    "leave the entry in place and set \"active\": false.",
     "",
-    "replication = how many independent raters see each narrative. 3 gives a majority vote",
-    "and a per-rater reliability estimate. calibration_n narratives are coded by EVERYONE,",
-    "so the whole group can be compared on the same items before their own slice begins."
+    "replication = how many independent coders see each narrative. At 3 coders, 2 gives a",
+    "disagreement signal on EVERY item (the outline's original design only double-coded 100 of",
+    "400) while keeping each coder near 3.5-5.5 hours. Raising it to 3 means everyone codes",
+    "all 400 and roughly doubles that.",
+    "",
+    "calibration_n narratives are coded by ALL three. That block is the only place where all",
+    "three overlap, so it carries the pairwise kappas and the per-coder agreement score.",
+    "Coders do it first, and it is worth reviewing those 20 together BEFORE the rest is coded."
   ],
-  "replication": 3,
-  "calibration_n": 15,
+  "replication": 2,
+  "calibration_n": 20,
   "raters": [
-    { "id": "R01", "name": "Rater 01", "active": true },
-    { "id": "R02", "name": "Rater 02", "active": true },
-    { "id": "R03", "name": "Rater 03", "active": true },
-    { "id": "R04", "name": "Rater 04", "active": true },
-    { "id": "R05", "name": "Rater 05", "active": true },
-    { "id": "R06", "name": "Rater 06", "active": true },
-    { "id": "R07", "name": "Rater 07", "active": true },
-    { "id": "R08", "name": "Rater 08", "active": true },
-    { "id": "R09", "name": "Rater 09", "active": true },
-    { "id": "R10", "name": "Rater 10", "active": true },
-    { "id": "R11", "name": "Rater 11", "active": true },
-    { "id": "R12", "name": "Rater 12", "active": true },
-    { "id": "R13", "name": "Rater 13", "active": true },
-    { "id": "R14", "name": "Rater 14", "active": true },
-    { "id": "R15", "name": "Rater 15", "active": true },
-    { "id": "R16", "name": "Rater 16", "active": true }
+    { "id": "C1", "name": "Coder 1 — crash-data practitioner", "active": true },
+    { "id": "C2", "name": "Coder 2 — safety researcher", "active": true },
+    { "id": "C3", "name": "Coder 3 — careful reader, non-specialist", "active": true }
   ]
 }
