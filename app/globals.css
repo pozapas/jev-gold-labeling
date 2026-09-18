@@ -1,0 +1,95 @@
+:root {
+  --bg: #fbfbfd;
+  --panel: #ffffff;
+  --ink: #1b1b1f;
+  --muted: #6b6b76;
+  --line: #e3e3ea;
+  --blue: #0072b2;
+  --orange: #e69f00;
+  --green: #009e73;
+  --red: #d55e00;
+  --shadow: 0 1px 2px rgba(16, 16, 32, .05), 0 4px 16px rgba(16, 16, 32, .04);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #131317;
+    --panel: #1c1c22;
+    --ink: #ececf1;
+    --muted: #9a9aa6;
+    --line: #2e2e38;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .4);
+  }
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 15px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--blue); }
+
+button {
+  font: inherit;
+  cursor: pointer;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--ink);
+  border-radius: 8px;
+  padding: 7px 12px;
+  transition: background .12s, border-color .12s, transform .06s;
+}
+button:hover:not(:disabled) { border-color: var(--muted); }
+button:active:not(:disabled) { transform: translateY(1px); }
+button:disabled { opacity: .45; cursor: not-allowed; }
+
+input[type="text"] {
+  font: inherit;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--ink);
+  width: 100%;
+}
+
+textarea {
+  font: inherit;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--ink);
+  width: 100%;
+  resize: vertical;
+}
+
+.wrap { max-width: 1240px; margin: 0 auto; padding: 0 20px; }
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+.muted { color: var(--muted); }
+.mono { font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace; }
+
+kbd {
+  font: 11px/1 ui-monospace, monospace;
+  border: 1px solid var(--line);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  padding: 3px 5px;
+  color: var(--muted);
+  background: var(--bg);
+}
+
+@media (max-width: 900px) {
+  .wrap { padding: 0 16px; }
+}

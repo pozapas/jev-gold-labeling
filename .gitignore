@@ -1,0 +1,13 @@
+node_modules/
+.next/
+.vercel
+*.log
+
+# secrets — the access code is a Vercel environment variable, never committed
+.env*.local
+.env
+.access-code.txt
+
+# the uncompressed dataset is for the local pipeline; the app ships the .gz
+data/gold_tasks.json
+tsconfig.tsbuildinfo
