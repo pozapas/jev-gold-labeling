@@ -124,3 +124,12 @@ writes `paper1/data/gold/gold_labels.csv` plus a reliability report.
 
 Adjudicate the `DISPUTED` rows before using the set as a reference. In a 16-rater dry run
 only 17 of 2,465 pairs were disputed, so this is a short list, not a second coding pass.
+
+## License
+
+The application code in this repository is released under the MIT License; see `LICENSE`.
+
+**The licence covers the software only.** The crash narratives in `data/gold_tasks.json.gz` are
+derived from Texas CRIS records held under a data agreement with the Texas Department of
+Transportation. They are not the authors' to relicense, the MIT grant does not extend to them,
+and reuse of that file is a matter for the data owner rather than for this licence.
