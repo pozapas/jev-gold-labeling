@@ -11,3 +11,6 @@ node_modules/
 # the uncompressed dataset is for the local pipeline; the app ships the .gz
 data/gold_tasks.json
 tsconfig.tsbuildinfo
+
+# Local editor/agent configuration
+.claude/
