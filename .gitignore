@@ -14,3 +14,6 @@ tsconfig.tsbuildinfo
 
 # Local editor/agent configuration
 .claude/
+
+# Assistant-specific entry point; AGENTS.md is the source of truth
+CLAUDE.md
